@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Search</title>
+    <style>
+        /* Basic CSS styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        label {
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 200px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="submit"] {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ticket Search</h1>
+    <form id="searchForm">
+        <div>
+            <label for="ticketId">ID:</label>
+            <input type="text" id="ticketId" name="ticketId">
+        </div>
+        <div>
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title">
+        </div>
+        <div>
+            <label for="content">Content:</label>
+            <input type="text" id="content" name="content">
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email">
+        </div>
+        <div>
+            <label for="createdFrom">Created From:</label>
+            <input type="number" id="createdFrom" name="createdFrom">
+        </div>
+        <div>
+            <label for="createdTo">Created To:</label>
+            <input type="number" id="createdTo" name="createdTo">
+        </div>
+        <div>
+            <label for="labels">Labels:</label>
+            <input type="text" id="labels" name="labels">
+        </div>
+        <input type="submit" value="Search">
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        // Handle form submission
+        document.getElementById("searchForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+            searchTickets(); // Call the searchTickets function
+        });
+
+        // Function to search for tickets
+        function searchTickets() {
+            // Get form values
+            const ticketId = document.getElementById("ticketId").value;
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            const email = document.getElementById("email").value;
+            const createdFrom = document.getElementById("createdFrom").value;
+            const createdTo = document.getElementById("createdTo").value;
+            const labels = document.getElementById("labels").value.split(",").map(label => label.trim());
+            console.log(labels)
+            // Build query string
+            let queryString = "/search?";
+            if (ticketId){ queryString += "ticket_id=" + encodeURIComponent(ticketId) + "&";   }
+            if (title){ queryString += "title=" + encodeURIComponent(title) + "&"; }
+            if (content){ queryString += "content=" + encodeURIComponent(content) + "&"; }
+            if (email){ queryString += "email=" + encodeURIComponent(email) + "&";  }
+            if (createdFrom){ queryString += "created_from=" + encodeURIComponent(createdFrom) + "&";  }
+            if (createdTo){ queryString += "created_to=" + encodeURIComponent(createdTo) + "&";  }
+            if (labels){
+                if (labels[0]){
+
+                
+                    queryString += "labels=" + encodeURIComponent(labels.join(","));
+                
+                }}
+            
+            // Send GET request to the API endpoint
+            fetch(queryString)
+                .then(response => response.json())
+                .then(data => {
+                    // Display the results
+                    const resultsDiv = document.getElementById("results");
+                    resultsDiv.innerHTML = "";
+                    console.log(data)
+                    if (data?.detail) {
+                        resultsDiv.textContent = "No tickets found.";
+                    } else {
+                        data.forEach(ticket => {
+                            const ticketDiv = document.createElement("div");
+                            ticketDiv.textContent = "Ticket ID: " + ticket.id + ", Title: " + ticket.title;
+                            resultsDiv.appendChild(ticketDiv);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("An error occurred:", error);
+                });
+        }
+    </script>
+</body>
+</html>

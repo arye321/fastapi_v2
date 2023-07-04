@@ -1,7 +1,11 @@
 from fastapi import FastAPI, HTTPException, Query
 from typing import List
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 import json
+
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 data = json.load(open('data.json'))
 tickets = {ticket["id"]: ticket for ticket in data}
@@ -37,7 +41,7 @@ def search_tickets(
             and (email is None or email.lower() in ticket["userEmail"].lower())
             and (created_from is None or ticket["creationTime"] >= created_from)
             and (created_to is None or ticket["creationTime"] <= created_to)
-            and (labels is None or all(label in ticket["labels"] for label in labels))
+            and (labels is None or ("labels" in ticket and all(label in ticket["labels"] for label in labels)))
         ):
             results.append(ticket)
 
@@ -45,3 +49,12 @@ def search_tickets(
         raise HTTPException(status_code=404, detail="No tickets found.")
 
     return results
+
+
+@app.get("/user_search")
+def user_search():
+    # Load the HTML file
+    with open("static/index.html") as file:
+        html_content = file.read()
+
+    return HTMLResponse(content=html_content, status_code=200)
